@@ -1,0 +1,17 @@
+package main
+
+import (
+  "encoding/json"
+  "fmt"
+  "os"
+)
+
+type student struct { 
+  StudentId int `json:"id"` 
+  LastName string `json:"lname"` 
+  MiddleInitial string `json:"mname,omitempty"` 
+  FirstName string `json:"fname"` 
+  IsMarried bool `json:"-"` 
+  IsEnrolled bool `json:"enrolled,omitempty "` 
+  Courses []course `json:"classes"` 
+}

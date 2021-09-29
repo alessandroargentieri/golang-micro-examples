@@ -16,12 +16,13 @@ type student struct {
 } 
 
 type course struct {
-  Name string `json:"coursename"`
-  Number int `json:"coursenum"`
-  Hours int `json:"coursehours"`
+  Name string `json:"coursename,omitempty"`
+  Number int `json:"coursenum,omitempty"`
+  Hours int `json:"coursehours,omitempty"`
 }
 
 func main() {
+
   s := student{
     StudentId: 535, 
     LastName: "Ribezzo", 
@@ -31,8 +32,10 @@ func main() {
   } 
 
   c1 := course{Name: "World Lit", Number: 101, Hours: 3}
-  c2 := course{Name: "Intro to Go", Number: 101, Hours: 4}
-  
+  //c2 := course{Name: "Intro to Go", Number: 101, Hours: 4}
+  //c2 := course{Name: "", Number: 0, Hours: 0}
+  c2 := course{}
+
   s.Courses = append(s.Courses, c1)
   s.Courses = append(s.Courses, c2)
 
