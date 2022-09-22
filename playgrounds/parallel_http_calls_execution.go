@@ -14,13 +14,14 @@ func main() {
 
 	requests := []string{"first", "second", "third"}
 	responses := []int{}
-	// I COULD HAVE USED AN UNBUFFERED (LENGTH=0) CHANNEL TOO.. THE BUFFERED ONE ALLOWS YOU TO FILL IT IN THE MAIN GOROUTINE WITH NO PROBLEMS, BUT HERE WE FILL THE 
-CHANNEL ALWAYS INSIDE OTHER GOROUTINES
+	// I COULD HAVE USED AN UNBUFFERED (LENGTH=0) CHANNEL TOO.. THE BUFFERED ONE ALLOWS YOU TO FILL IT IN THE MAIN GOROUTINE WITH NO PROBLEMS, BUT HERE WE FILL THE CHANNEL ALWAYS INSIDE OTHER GOROUTINES
 	respChan := make(chan int, len(requests))
 
 	// perform requests asynchronously saving results in respChan
 	for _, req := range requests {
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	        // IT'S IMPORTANT TO CREATE A COPY OF THE VARIABLE WHEN USING IN A GOROUTINE INSIDE A CYCLE: OTHERWISE TROUBLE!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	        request := req
 	        // I COULD HAVE ALSO CREATED A FUNCTION PASSING THE CHANNEL AS PARAM INSTEAD OF USING THE CHANNEL INSIDE AN ANONYMOUS FUNCTION
 		go func() {
@@ -28,10 +29,9 @@ CHANNEL ALWAYS INSIDE OTHER GOROUTINES
 		}()
 	}
 
-	// collecting response with a blocking while cycle
+	// collecting responses with a blocking while cycle
 	i := 0
-	// IF YOU MISTAKE THE MAX NUMBER OF ITERATIONS IN EXCESS YOU GET A DEADLOCK ERROR BECAUSE THE MAIN GOROUTINE WAITS INDEFINITELY FOR ANOTHER VALUE TO POP UP IN 
-THE CHANNEL: THING THAT WILL NEVER HAPPEN
+	// IF YOU MISTAKE THE MAX NUMBER OF ITERATIONS IN EXCESS YOU GET A DEADLOCK ERROR BECAUSE THE MAIN GOROUTINE WAITS INDEFINITELY FOR ANOTHER VALUE TO POP UP IN THE CHANNEL: THING THAT WILL NEVER HAPPEN
 	for i < len(requests) {
 		// this operation blocks the goroutine until a new value is fetched
 		responses = append(responses, <-respChan)
