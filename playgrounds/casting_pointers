@@ -1,0 +1,27 @@
+// YOU CAN RETURN A POINTER THROUGH AN INTERFACE, CAST IT TO A POINTER AGAIN AND FETCH THE VALUE WITH NO PROBLEMS
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+        
+  // string and relative pointer 
+	str := "John Doe"
+	pstr := &str
+	
+	// returns an interface{}
+	h := myFunc(pstr)
+	
+	// change original pointed value
+	str = "John Doex"
+	
+	// cast to a pointer again and go to the pointed value
+	fmt.Println(*(h.(*string)))
+}
+
+// returns an interface{} but in reality it's a pointer
+func myFunc(s *string) interface{} {
+   return s
+} 
