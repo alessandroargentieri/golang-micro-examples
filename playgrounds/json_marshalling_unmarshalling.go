@@ -102,3 +102,24 @@ func main() {
 func generalizeMe(i interface{}) interface{} {
    return i
 }
+
+
+/*
+PRINTS:
+{"model":"Delta","brand":"Lancia"}
+{"model":"Delta","brand":"Lancia"}
+
+Model: Delta, Brand: Lancia 
+
+map[brand:Lancia model:Delta] 
+map[string]interface {} 
+
+map[brand:Lancia model:Delta] 
+map[string]interface {} 
+
+true
+
+false
+false
+string string 
+*/
