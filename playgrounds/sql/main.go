@@ -76,8 +76,13 @@ func getUserByID(db *sql.DB, ID int64) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer statement.Close()
+	
 	var user User
-	if err = statement.QueryRow(1).Scan(&user.ID, &user.Name, &user.Email, &user.Age); err != nil {
+	if err = statement.QueryRow(ID).Scan(&user.ID, &user.Name, &user.Email, &user.Age); err != nil {
+		if err == sql.ErrNoRows {
+			fmt.Printf("user with ID %d not found in the System\n", ID)
+		}
 		return nil, err
 	}
 	return &user, nil
