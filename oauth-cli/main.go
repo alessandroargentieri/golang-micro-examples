@@ -128,7 +128,7 @@ In this case, instead, by not having a Backend and not involving the browser, th
 'code' (lasting 10 minutes) with the access token (JWT).
 */
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
-
+	// if the path and method don't correspond, the server is shut down
 	if r.URL.Path != "/cli/oauth/redirect" || r.Method != http.MethodGet {
 		close(shutdown) // Signal to shut down the server
 		w.WriteHeader(http.StatusNotFound)
