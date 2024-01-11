@@ -1,0 +1,38 @@
+// IN-FUNCTION STRUCT DEFINITION
+// ANONYMOUS BLOCKS
+
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+
+	// struct defined in a function
+	type InFunctionStruct struct{
+	   // function as struct attribute
+	   Fn func(input interface{})
+	   // higher order functions
+	   HigherOrderFn func(input interface{}) func()
+	}
+	
+	// blocks 
+	{
+	   greetz := "hello"
+	
+	   myStruct := InFunctionStruct{
+	      Fn: func(input interface{}){
+	         fmt.Println(input)
+	      },
+	      HigherOrderFn: func(input interface{}) func(){
+	         return func() {
+	            fmt.Println(input)
+	         }
+	      },
+	   }
+	
+	   myStruct.Fn(greetz)
+	   myStruct.HigherOrderFn(greetz)()
+	}
+}
