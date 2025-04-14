@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tree-container {
+            margin: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tree-item {
+            padding: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tree-item:hover {
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        
+        .tree-folder {
+            padding-left: 20px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            max-height: 2000px;
+        }
+        
+        .hidden {
+            max-height: 0;
+            padding: 0;
+        }
+        
+        .icon-container {
+            display: inline-block;
+            width: 30px;
+            text-align: center;
+            color: #4a4a4a;
+        }
+        
+        .fa-folder, .fa-folder-open {
+            color: #ffdd57;
+        }
+        
+        .fa-file-pdf {
+            color: #ff6b6b;
+        }
+        
+        .fa-file-alt {
+            color: #74b9ff;
+        }
+        
+        .fa-file-image {
+            color: #55efc4;
+        }
+        
+        .fa-file-audio {
+            color: #a29bfe;
+        }
+        
+        .fa-file-video {
+            color: #ff7675;
+        }
+        
+        .fa-file-archive {
+            color: #fdcb6e;
+        }
+        
+        .fa-file-excel {
+            color: #00b894;
+        }
+        
+        .fa-file-powerpoint {
+            color: #e17055;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .folder-toggle {
+            display: flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .folder-toggle:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .breadcrumb-container {
+            padding: 10px 20px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        @media screen and (max-width: 768px) {
+            .tree-container {
+                margin: 10px;
+                padding: 10px;
+            }
+            
+            .tree-item {
+                padding: 12px 0;
+            }
+            
+            .breadcrumb-container {
+                padding: 8px;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="is-flex is-flex-direction-column is-align-items-center">
+            <span class="icon is-large">
+                <i class="fas fa-spinner fa-pulse fa-3x"></i>
+            </span>
+            <p class="mt-3 has-text-weight-bold">Loading file system...</p>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="#">
+                <span class="icon mr-2">
+                    <i class="fas fa-folder-tree fa-lg"></i>
+                </span>
+                <span class="has-text-weight-bold is-size-4">File Explorer</span>
+            </a>
+
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </a>
+        </div>
+
+        <div id="navMenu" class="navbar-menu">
+            <div class="navbar-start">
+                <a class="navbar-item">
+                    <span class="icon mr-1">
+                        <i class="fas fa-home"></i>
+                    </span>
+                    Home
+                </a>
+
+                <a class="navbar-item">
+                    <span class="icon mr-1">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    Search
+                </a>
+
+                <div class="navbar-item has-dropdown is-hoverable">
+                    <a class="navbar-link">
+                        <span class="icon mr-1">
+                            <i class="fas fa-cog"></i>
+                        </span>
+                        Options
+                    </a>
+
+                    <div class="navbar-dropdown">
+                        <a class="navbar-item">
+                            <span class="icon mr-1">
+                                <i class="fas fa-sort-alpha-down"></i>
+                            </span>
+                            Sort
+                        </a>
+                        <a class="navbar-item">
+                            <span class="icon mr-1">
+                                <i class="fas fa-filter"></i>
+                            </span>
+                            Filter
+                        </a>
+                        <hr class="navbar-divider">
+                        <a class="navbar-item">
+                            <span class="icon mr-1">
+                                <i class="fas fa-palette"></i>
+                            </span>
+                            Theme
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <div class="buttons">
+                        <a class="button is-light" id="refreshButton">
+                            <span class="icon">
+                                <i class="fas fa-sync-alt"></i>
+                            </span>
+                            <span>Refresh</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container is-fluid">
+        <div class="columns">
+            <!-- Sidebar - Only visible on desktop -->
+            <div class="column is-3 is-hidden-mobile">
+                <aside class="menu mt-4">
+                    <p class="menu-label">
+                        Favorites
+                    </p>
+                    <ul class="menu-list">
+                        <li><a><span class="icon mr-2"><i class="fas fa-star"></i></span>Starred</a></li>
+                        <li><a><span class="icon mr-2"><i class="fas fa-clock"></i></span>Recent</a></li>
+                    </ul>
+                    <p class="menu-label">
+                        Locations
+                    </p>
+                    <ul class="menu-list">
+                        <li><a><span class="icon mr-2"><i class="fas fa-laptop"></i></span>Home</a></li>
+                        <li><a><span class="icon mr-2"><i class="fas fa-file-alt"></i></span>Documents</a></li>
+                        <li><a><span class="icon mr-2"><i class="fas fa-download"></i></span>Downloads</a></li>
+                        <li><a><span class="icon mr-2"><i class="fas fa-image"></i></span>Pictures</a></li>
+                        <li><a><span class="icon mr-2"><i class="fas fa-music"></i></span>Music</a></li>
+                        <li><a><span class="icon mr-2"><i class="fas fa-film"></i></span>Videos</a></li>
+                    </ul>
+                </aside>
+            </div>
+
+            <!-- Main File Tree -->
+            <div class="column">
+                <!-- Breadcrumb navigation -->
+                <div class="breadcrumb-container mt-4">
+                    <nav class="breadcrumb" aria-label="breadcrumbs">
+                        <ul>
+                            <li><a href="#"><span class="icon is-small"><i class="fas fa-home"></i></span><span>Home</span></a></li>
+                            <li class="is-active"><a href="#" aria-current="page">Files</a></li>
+                        </ul>
+                    </nav>
+                </div>
+                
+                <div class="card tree-container">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            <span class="icon mr-2">
+                                <i class="fas fa-folder-open"></i>
+                            </span>
+                            Files
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div id="fileTree" class="content">
+                            <!-- File tree will be inserted here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock API data - Simulates a response from a server
+        const mockApiResponse = {
+            name: "root",
+            type: "folder",
+            children: [
+                {
+                    name: "Home",
+                    type: "folder",
+                    children: [
+                        {
+                            name: "Documents",
+                            type: "folder",
+                            children: [
+                                {
+                                    name: "Work",
+                                    type: "folder",
+                                    children: [
+                                        { name: "Report Q1.pdf", type: "file", size: "2.5MB" },
+                                        { name: "Presentation.pptx", type: "file", size: "4.2MB" },
+                                        { name: "Budget.xlsx", type: "file", size: "1.8MB" }
+                                    ]
+                                },
+                                {
+                                    name: "Personal",
+                                    type: "folder",
+                                    children: [
+                                        { name: "Resume.docx", type: "file", size: "1.2MB" },
+                                        { name: "Taxes2023.pdf", type: "file", size: "3.7MB" }
+                                    ]
+                                },
+                                { name: "Notes.txt", type: "file", size: "0.1MB" }
+                            ]
+                        },
+                        {
+                            name: "Pictures",
+                            type: "folder",
+                            children: [
+                                {
+                                    name: "Vacation",
+                                    type: "folder",
+                                    children: [
+                                        { name: "Beach.jpg", type: "file", size: "5.2MB" },
+                                        { name: "Mountains.jpg", type: "file", size: "4.8MB" }
+                                    ]
+                                },
+                                { name: "Profile.png", type: "file", size: "1.5MB" },
+                                { name: "Family.jpg", type: "file", size: "3.2MB" }
+                            ]
+                        },
+                        {
+                            name: "Music",
+                            type: "folder",
+                            children: [
+                                {
+                                    name: "Rock",
+                                    type: "folder",
+                                    children: [
+                                        { name: "Song1.mp3", type: "file", size: "8.5MB" },
+                                        { name: "Song2.mp3", type: "file", size: "7.2MB" }
+                                    ]
+                                },
+                                {
+                                    name: "Jazz",
+                                    type: "folder",
+                                    children: [
+                                        { name: "Track1.mp3", type: "file", size: "6.1MB" },
+                                        { name: "Track2.mp3", type: "file", size: "5.9MB" }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            name: "Videos",
+                            type: "folder",
+                            children: [
+                                { name: "Vacation.mp4", type: "file", size: "125MB" },
+                                { name: "Birthday.mov", type: "file", size: "86MB" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    name: "Downloads",
+                    type: "folder",
+                    children: [
+                        { name: "Setup.exe", type: "file", size: "45MB" },
+                        { name: "Package.zip", type: "file", size: "22MB" }
+                    ]
+                },
+                {
+                    name: "Applications",
+                    type: "folder",
+                    children: [
+                        { name: "App1", type: "folder", children: [] },
+                        { name: "App2", type: "folder", children: [] },
+                        { name: "App3", type: "folder", children: [] }
+                    ]
+                },
+                {
+                    name: "System",
+                    type: "folder",
+                    children: [
+                        {
+                            name: "Logs",
+                            type: "folder",
+                            children: [
+                                { name: "system.log", type: "file", size: "1.3MB" },
+                                { name: "error.log", type: "file", size: "0.5MB" }
+                            ]
+                        },
+                        {
+                            name: "Config",
+                            type: "folder",
+                            children: [
+                                { name: "settings.conf", type: "file", size: "0.1MB" }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Function to simulate API call
+        function fetchFileTree() {
+            return new Promise((resolve) => {
+                // Simulate network delay
+                setTimeout(() => {
+                    resolve(mockApiResponse);
+                }, 1500); // 1.5 seconds delay to simulate loading
+            });
+        }
+
+        // Function to render the file tree
+        function renderFileTree(node, container, level = 0) {
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('tree-item');
+            
+            // Create the item content
+            const content = document.createElement('div');
+            content.style.paddingLeft = `${level * 20}px`;
+            
+            // Icon container
+            const iconContainer = document.createElement('span');
+            iconContainer.classList.add('icon-container');
+            
+            // Determine which icon to use
+            let icon;
+            if (node.type === 'folder') {
+                icon = document.createElement('i');
+                icon.classList.add('fas', 'fa-folder');
+                
+                // For folders, add a toggle class
+                content.classList.add('folder-toggle');
+                
+                // Set a data attribute to track state
+                content.setAttribute('data-expanded', 'false');
+                
+                // Add click event to toggle folders
+                content.addEventListener('click', function() {
+                    const expanded = this.getAttribute('data-expanded') === 'true';
+                    this.setAttribute('data-expanded', !expanded);
+                    
+                    // Toggle the folder icon
+                    const folderIcon = this.querySelector('i');
+                    if (expanded) {
+                        folderIcon.classList.replace('fa-folder-open', 'fa-folder');
+                    } else {
+                        folderIcon.classList.replace('fa-folder', 'fa-folder-open');
+                    }
+                    
+                    // Toggle visibility of children
+                    const childrenContainer = this.parentNode.querySelector('.tree-folder');
+                    if (childrenContainer) {
+                        childrenContainer.classList.toggle('hidden');
+                    }
+                });
+            } else {
+                // Determine file icon based on extension
+                icon = document.createElement('i');
+                icon.classList.add('fas');
+                
+                const fileName = node.name.toLowerCase();
+                if (fileName.endsWith('.pdf')) {
+                    icon.classList.add('fa-file-pdf');
+                } else if (fileName.endsWith('.docx') || fileName.endsWith('.doc') || fileName.endsWith('.txt')) {
+                    icon.classList.add('fa-file-alt');
+                } else if (fileName.endsWith('.jpg') || fileName.endsWith('.png') || fileName.endsWith('.gif')) {
+                    icon.classList.add('fa-file-image');
+                } else if (fileName.endsWith('.mp3') || fileName.endsWith('.wav')) {
+                    icon.classList.add('fa-file-audio');
+                } else if (fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.avi')) {
+                    icon.classList.add('fa-file-video');
+                } else if (fileName.endsWith('.zip') || fileName.endsWith('.rar')) {
+                    icon.classList.add('fa-file-archive');
+                } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                    icon.classList.add('fa-file-excel');
+                } else if (fileName.endsWith('.pptx') || fileName.endsWith('.ppt')) {
+                    icon.classList.add('fa-file-powerpoint');
+                } else if (fileName.endsWith('.exe') || fileName.endsWith('.app')) {
+                    icon.classList.add('fa-cog');
+                } else {
+                    icon.classList.add('fa-file');
+                }
+            }
+            
+            iconContainer.appendChild(icon);
+            content.appendChild(iconContainer);
+            
+            // Add the name
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = node.name;
+            content.appendChild(nameSpan);
+            
+            // If it's a file, add the size
+            if (node.type === 'file' && node.size) {
+                const sizeSpan = document.createElement('span');
+                sizeSpan.classList.add('tag', 'is-light', 'is-small', 'ml-2');
+                sizeSpan.textContent = node.size;
+                content.appendChild(sizeSpan);
+            }
+            
+            itemDiv.appendChild(content);
+            container.appendChild(itemDiv);
+            
+            // If this node has children, render them too
+            if (node.children && node.children.length > 0) {
+                const childrenContainer = document.createElement('div');
+                childrenContainer.classList.add('tree-folder', 'hidden');
+                itemDiv.appendChild(childrenContainer);
+                
+                node.children.forEach(child => {
+                    renderFileTree(child, childrenContainer, level + 1);
+                });
+            }
+        }
+
+        // Function to reload the file tree
+        function reloadFileTree() {
+            const fileTreeContainer = document.getElementById('fileTree');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            
+            // Clear current tree
+            fileTreeContainer.innerHTML = '';
+            
+            // Show loading overlay
+            loadingOverlay.style.display = 'flex';
+            
+            // Fetch and render the file tree
+            fetchFileTree()
+                .then(data => {
+                    // Hide loading overlay
+                    loadingOverlay.style.display = 'none';
+                    
+                    // Render each top-level item
+                    data.children.forEach(child => {
+                        renderFileTree(child, fileTreeContainer);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching file tree:', error);
+                    loadingOverlay.style.display = 'none';
+                    fileTreeContainer.innerHTML = '<div class="notification is-danger">Error loading file system. Please try again.</div>';
+                });
+        }
+
+        // Toggle burger menu for mobile
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all "navbar-burger" elements
+            const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+
+            // Add a click event on each of them
+            $navbarBurgers.forEach(el => {
+                el.addEventListener('click', () => {
+                    // Get the target from the "data-target" attribute
+                    const target = el.dataset.target;
+                    const $target = document.getElementById(target);
+
+                    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+                    el.classList.toggle('is-active');
+                    $target.classList.toggle('is-active');
+                });
+            });
+
+            // Add refresh functionality
+            document.getElementById('refreshButton').addEventListener('click', reloadFileTree);
+
+            // Initial load of the file tree
+            reloadFileTree();
+        });
+    </script>
+</body>
+</html>
