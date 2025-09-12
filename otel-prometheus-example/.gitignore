@@ -1,0 +1,74 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+otel-prometheus-example
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Go workspace file
+go.work
+
+# Dependency directories (remove the comment below to include it)
+vendor/
+
+# Go modules cache
+go.sum
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
+# Build artifacts
+main
+otel-prometheus-example
+*.tar.gz
+*.zip
+
+# Docker files (optional - uncomment if you don't want to track)
+# Dockerfile
+# docker-compose.yml
+
+# Kubernetes files (optional)
+k8s/
+*.yaml
+*.yml
+
+# Temporary files
+tmp/
+temp/
+
+# Coverage files
+coverage.txt
+coverage.html
+coverage.out
+
+# Air live reload tool
+tmp/
